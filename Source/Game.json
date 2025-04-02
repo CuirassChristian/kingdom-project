@@ -1,0 +1,11 @@
+{
+    "game-settings": {
+        "fps": 144,
+        "limit-fps": true,
+        "v-sync": true
+    },
+    "main-scene": {
+        "asset-id": 1743449809,
+        "name": "Scene"
+    }
+}

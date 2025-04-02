@@ -1,6 +1,6 @@
 {
     "game-settings": {
-        "fps": 144,
+        "fps": 60,
         "limit-fps": true,
         "v-sync": true
     },

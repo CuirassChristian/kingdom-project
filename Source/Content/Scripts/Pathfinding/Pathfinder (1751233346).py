@@ -6,6 +6,10 @@ class Pathfinder(cave.Component):
 	gridSizeY : int = 0
 	gridSpacing : float = 0.25
 
+	def __init__(self):
+		cave.Component.__init__(self)
+		pass
+		
 	def start(self, scene: cave.Scene):
 		self.transf = self.entity.getTransform()
 		self.nodeObj = self.entity.getChild("PathfinderGridNode")
@@ -23,15 +27,17 @@ class Pathfinder(cave.Component):
 	def createNode(self, x, y):
 		scene = cave.getScene()
 		newNode = scene.copyEntity(self.nodeObj)
+
 		newNode.activate(scene)
 		tf = newNode.getTransform()
 		pos = cave.Vector3(x,0,y) 
-			
+	
 		if tf is not None:
 			tf.position = pos
 	
 	def update(self):
 		events = cave.getEvents()
+	
 		
 	def end(self, scene: cave.Scene):
 		pass

@@ -15,7 +15,7 @@ class RTSCamera(cave.Component):
 		
 	def camera_zoom(self):
 		events = cave.getEvents()
-		#y = events.active(cave.event.getMouseScroll())
+		y = events.getMouseScroll()
 		#print (y)
 		
 	#region camera controls

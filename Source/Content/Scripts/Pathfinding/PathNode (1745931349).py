@@ -3,16 +3,19 @@ import cave
 class PathNode(cave.Component):
 	x = 0
 	y = 0
-	ref_pathfinder : Pathfinder = None
+
+	def __init__(self):
+		cave.Component.__init__(self)
+		pass
 	
 	def start(self, scene: cave.Scene):
+		self.ref_Pathfinding : Pathfinding = None
 		pass
 
-	def setPathfinderRef(path:Pathfinder):
-		self.ref_pathfinder = path
-		if ref is not None:
-			print("Pathnode registered to pathfinder")
-		pass
+	def setPathfinderRef(self, e:cave.Entity):
+		if e is not None:
+			self.ref_Pathfinding = e.getPy("Pathfinder")
+		
 
 	def update(self):
 		events = cave.getEvents()

@@ -46,6 +46,7 @@ class Pathfinder(cave.Component):
 	
 	def update(self):
 		events = cave.getEvents()
+		scene = cave.getScene()
 		if events.active(cave.event.KEY_F):
 			print(len(self.pathnode_list))
 		

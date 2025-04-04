@@ -11,12 +11,13 @@ class PathNode(cave.Component):
 		pass
 	
 	def start(self, scene: cave.Scene):
-		self.ref_Pathfinding : Pathfinding = None
+		self.ref_Pathfinding = None
 		self.obstacle : bool = False
 		pass
 
 	def setPathfinderRef(self, e:cave.Entity):
 		if e is not None:
+			print("set")
 			self.ref_Pathfinding = e.getPy("Pathfinder")
 		
 

@@ -6,13 +6,17 @@ class RTSCamera(cave.Component):
 	cameraSpeed = 0.2
 	cameraZoomSpeed = 0.35
 	cam = None
+	ref_pathfindingscript = None
+	
+	def __init__(self):
+		cave.Component.__init__(self)
 		
 	def start(self, scene: cave.Scene):
 		self.tf = None 
 		self.tf = self.entity.getTransform()
-		self.cam = scene.getCamera()
+		self.ref_pathfindingscript = None
 		self.coordText : cave.UIElementComponent = scene.get("PathNodeCoord").get("UI Element")
-			
+	
 	def update(self):
 		self.camera_move()
 		self.camera_zoom()
@@ -38,25 +42,30 @@ class RTSCamera(cave.Component):
 		scene = cave.getScene()
 		window = cave.getWindow()
 		cam = scene.getCamera()
-		origin = self.cam.getWorldPosition()
+		origin = cam.getWorldPosition()
 	
 		# get mouse pos for cam raycast
 		mouse_pos = window.getMousePosition(True)
 		
 		target = cam.getScreenRay(mouse_pos.x, mouse_pos.y)
-		length = 200
+		
+		length = 80
 		ray_target = target * length
 
 		mask = cave.BitMask(False)
 		mask.enable(7)
 		result = scene.rayCast(origin, ray_target, mask)
-		#scene.addDebugLine(origin, ray_target, cave.Vector3(0,0,64))
+		scene.addDebugLine(origin, ray_target, cave.Vector3(0,0,0))
 		
 		if result.hit:
 			pn : PathNode = None
 			pn = result.entity.getPy("PathNode")
 			
 			world_position = result.entity.getTransform().worldPosition
+			
+			if self.ref_pathfindingscript is not None:
+				print("setting target")
+				self.ref_pathfindingscript.set_target_pathnode(world_position)
 			
 			self.coordText.setText("pathnode: " + str(round(world_position.x, 2))
 			+ ", " + str(round(world_position.z, 2)))

@@ -16,9 +16,14 @@ class PathfinderGridNode(cave.Component):
 		
 	def generateGrid(self):
 	
+		xC : int = 0
+		yC : int = 0
+
 		for x in range(self.gridSizeX):
 			for y in range(self.gridSizeY):
 				self.createNode(x, y)
+				yC += 1
+			xC += 1
 				
 		self.pathNodeObj.setActive(False, cave.getScene())
 					
@@ -32,9 +37,8 @@ class PathfinderGridNode(cave.Component):
 		pathNode = newNode.getPy("PathNode")
 		
 		if pathNode is not None:
-			pathNode.x = x
-			pathNode.y = y
 			self.pathfinding_script.register_pathnode(pathNode)
+			pathNode.update_xy(x,y)
 		
 		if tf is not None:
 			tf.position = pos

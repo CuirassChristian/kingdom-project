@@ -14,6 +14,7 @@ class Unit(cave.Component):
 	cur_tf : cave.Transform = None
 	cur_pos : cave.Vector3 = None
 	hasMoveOrder : bool = False
+	unit_collision = None
 
 	def __init__(self):
 		cave.Component.__init__(self)
@@ -23,10 +24,17 @@ class Unit(cave.Component):
 		self.targetPos : cave.Vector3 = None
 		self.hasMoveOrder = False
 		self.distance_speed : Float = 0
+		self.unit_collision = self.entity.get("RigidBodyComponent")
+		if self.unit_collision is not None:
+			print("we have collision")
 
 		# intializing transform for movement later
 		self.target_tf = cave.Transform()
 		self.cur_tf = cave.Transform()
+
+		self.cur_x = 0
+		self.cur_y = 0
+
 		self.moveSpeed = 1
 		self.unitManager = scene.get("UnitManager")
 		self.tf = self.entity.getTransform()
@@ -51,6 +59,20 @@ class Unit(cave.Component):
 
 		pass
 
+	def check_collisions(self):
+		collisions = self.unit_collision.getCollisionsWith("Unit")
+		pathnode_collisions = self.unit_collision.getCollisionsWith("Pathnode")
+
+		if len(pathnode_collisions) > 0:
+			print("pn")
+			
+		if len(collisions) > 0:
+			for x in collisions:
+				tf = x.entity.getTransform()
+				if tf is not None:
+					dist = (self.cur_pos - tf.position).length()
+					if dist < 0.15:
+						pass
 
 	def do_move(self):
 		dt = cave.getDeltaTime()
@@ -70,8 +92,11 @@ class Unit(cave.Component):
 			#print (distance)
 
 	def update(self):
+		#self.check_collisions()
+
 		if self.hasMoveOrder is True:
 			self.do_move()
+		
 	
 		
 	def end(self, scene: cave.Scene):

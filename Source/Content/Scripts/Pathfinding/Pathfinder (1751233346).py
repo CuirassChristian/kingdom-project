@@ -4,7 +4,7 @@ class Pathfinder(cave.Component):
 
 	gridSizeX : int = 0
 	gridSizeY : int = 0
-	gridSpacing : float = 0.25
+	gridSpacing : float = 0.1
 	number_of_pathnodes = 0
 	unitObj = None
 	pathnode_list = []
@@ -22,12 +22,19 @@ class Pathfinder(cave.Component):
 		self.unitObj = self.entity.getChild("Unit")
 		self.transf = self.entity.getTransform()
 		self.nodeObj = self.entity.getChild("PathfinderGridNode")
-
+		self.target = cave.Vector2(0,0)
 		self.pathnode_list = []
 		self.generateGrid()
+
+		#actual pathfinding stuff
+		self.g = 0
+		self.h = 0
+		self.f = 0
+
 		
-	def set_target_pathnode(self, p:cave.Vector3):
+	def set_target_pathnode(self, p):
 		self.targetNode = p
+		self.target = (p.x, p.y)
 		
 	def register_rts_cam(self, r):
 		print ("registering rts camera")
@@ -54,24 +61,38 @@ class Pathfinder(cave.Component):
 		self.number_of_pathnodes = len(self.pathnode_list)
 		#print(len(self.pathnode_list))
 
+	def find_path(self, s:cave.Vector2, e:cave.Vector2):
+		self.a_star(self.pathnode_list, s, e)
+
+
+	def a_star(self, nodelist, start, end):
+		print ("finding path: " + str(start) + " -> " + str(end))
+		pass
+
 	def generateGrid(self):
 	
 		for x in range(self.gridSizeX):
-	
 			for y in range(self.gridSizeY):
 				self.createNode(x, y)
 				
-		self.nodeObj.setActive(False, cave.getScene())
-				
 	def createNode(self, x, y):
 		scene = cave.getScene()
-		newNode = scene.copyEntity(self.nodeObj)
-
+		newNode = self.entity.getScene().addFromTemplate("PathNode")
 		newNode.activate(scene)
+
 		tf = newNode.getTransform()
-		pos = cave.Vector3(x,0,y) 
-	
-	
+		tf.setParent(self.entity.getTransform(), True)
+		tf.scale = cave.Vector3(0.1, 0.1, 0.1)
+		
+		spacing_factor = 0.25
+		pos = cave.Vector3(x * spacing_factor, 0.05, y * spacing_factor)  
+
+		pn = PathNode()
+		
+		if pn is not None:
+			self.register_pathnode(pn)
+			pn.setEntity(newNode)
+
 		if tf is not None:
 			tf.position = pos
 	
@@ -86,7 +107,7 @@ class Pathfinder(cave.Component):
 			
 		if events.active(cave.event.MOUSE_LEFT):
 			if self.ref_unitmanager is not None:
-				self.ref_unitmanager.give_move_order(self.targetNode)
+				self.ref_unitmanager.give_move_order(self.target)
 		
 	def end(self, scene: cave.Scene):
 		pass

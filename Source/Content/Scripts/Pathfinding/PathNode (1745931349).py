@@ -1,8 +1,6 @@
 import cave
 
 class PathNode(cave.Component):
-	x = 0
-	y = 0
 	
 	obstacle : bool = False
 
@@ -11,14 +9,22 @@ class PathNode(cave.Component):
 		pass
 	
 	def start(self, scene: cave.Scene):
-		self.ref_Pathfinding = None
 		self.obstacle : bool = False
+		self.position = None
+		self.x : int = 0
+		self.y : int = 0
+		self.g = 0
+		self.h = 0
+		self.f = 0
+
 		pass
 
-	def setPathfinderRef(self, e:cave.Entity):
-		if e is not None:
-			print("set")
-			self.ref_Pathfinding = e.getPy("Pathfinder")
+	def update_xy(self, x, y):
+		self.x = x 
+		self.y = y
+
+	def __eq__(self, other):
+		return self.position == other.position
 		
 
 	def update(self):

@@ -74,7 +74,7 @@ class RTSCamera(cave.Component):
 		ray_target = target * length
 
 		mask = cave.BitMask(False)
-		mask.enable(7)
+		mask.enable(8)
 		result = scene.rayCast(origin, ray_target, mask)
 		scene.addDebugLine(origin, ray_target, cave.Vector3(0,0,0))
 	
@@ -90,7 +90,7 @@ class RTSCamera(cave.Component):
 
 			if self.ref_pathfindingscript is not None:
 				print("setting target")
-				self.ref_pathfindingscript.set_target_pathnode(world_position)
+				self.ref_pathfindingscript.set_target_pathnode(cave.Vector2(pn.x, pn.y))
 			
 			self.coordText.setText("pathnode: " + str(round(world_position.x, 2))
 			+ ", " + str(round(world_position.z, 2)))

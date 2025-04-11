@@ -99,15 +99,15 @@ class Pathfinder(cave.Component):
 			x = 0
 			
 			completed_path = []
-			
-			for p in self.pathnode_list:
-				y = p.getProperties()["y"]
-				x = p.getProperties()["x"]
-				
-				for pa in path:
+
+			for pa in path:
+				for p in available_pathnode_list:
+					y = p.getProperties()["y"]
+					x = p.getProperties()["x"]
+
 					paY = pa[1]
 					paX = pa[0]
-					
+						
 					if paX == x:
 						if paY == y:
 							completed_path.append(p)

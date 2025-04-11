@@ -18,6 +18,7 @@ class Unit(cave.Component):
 	next_node = None
 	node_path_count : int = 0
 	pathlist = []
+	idle_pathnode = None
 	
 	def __init__(self):
 		cave.Component.__init__(self)
@@ -31,7 +32,7 @@ class Unit(cave.Component):
 		self.node_path_count : int = 0
 		
 		self.pathlist = []
-		
+		self.idle_pathnode = None
 		self.unit_collision = self.entity.get("RigidBodyComponent")
 		if self.unit_collision is not None:
 			print("we have collision")
@@ -75,29 +76,35 @@ class Unit(cave.Component):
 				if self.next_node is not None:
 					self.targetPos = self.next_node.getTransform().position
 					self.cur_pos = firstnode.getTransform().position
-					
+
 					self.move()
 		
 		pass
 		
-	def goto_nextnode(self, currentnode, nextnode):
-
-		pass
-		
 	def node_reached(self):
-		self.node_path_count += 1
-		print("reached goal - next node is " + str(self.node_path_count))
 		
+		self.idle_pathnode = self.pathlist[self.node_path_count]
+		
+		self.entity.getProperties()["x"] = self.idle_pathnode.getProperties()["x"]
+		self.entity.getProperties()["y"] = self.idle_pathnode.getProperties()["y"]
+		
+		print("reached goal - next node is " + str(self.node_path_count))
+
 		path_len = len(self.pathlist)
 		if self.node_path_count >= path_len:
 			print("path is completed")
 			return
 		else:
+			if self.node_path_count + 1 > len(self.pathlist):
+				print("no available next nodes")
+				return
+				
+			self.node_path_count += 1
 			print("moving to next node")
 			self.next_node = self.pathlist[self.node_path_count]
 			self.targetPos = self.next_node.getTransform().position
 			self.cur_pos = self.pathlist[self.node_path_count -1].getTransform().position
-			
+		
 			self.move()
 		
 	def move(self):

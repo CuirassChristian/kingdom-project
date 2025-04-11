@@ -89,11 +89,19 @@ class RTSCamera(cave.Component):
 			tf.position = world_position
 
 			if self.ref_pathfindingscript is not None:
-				print("setting target")
-				self.ref_pathfindingscript.set_target_pathnode(cave.Vector2(pn.x, pn.y))
+				newx : int = 0
+				newy : int = 0
+				props = result.entity.getProperties()
+		
+				newx = props.get("x")
+				newy = props.get("y")
+
+				#print(str(newx) + " " + str(newy))
+
+				self.ref_pathfindingscript.set_target_pathnode(cave.Vector2(newx, newy))
 			
-			self.coordText.setText("pathnode: " + str(round(world_position.x, 2))
-			+ ", " + str(round(world_position.z, 2)))
+			self.coordText.setText("pathnode: " + str(round(newx, 2))
+			+ ", " + str(round(newy, 2)))
 	
 		pass
 		

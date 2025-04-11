@@ -1,4 +1,6 @@
 import cave
+import math
+import random
 
 class Pathfinder(cave.Component):
 
@@ -34,7 +36,7 @@ class Pathfinder(cave.Component):
 		
 	def set_target_pathnode(self, p):
 		self.targetNode = p
-		self.target = (p.x, p.y)
+		self.target = cave.Vector2(p.x, p.y)
 		
 	def register_rts_cam(self, r):
 		print ("registering rts camera")
@@ -61,13 +63,146 @@ class Pathfinder(cave.Component):
 		self.number_of_pathnodes = len(self.pathnode_list)
 		#print(len(self.pathnode_list))
 
-	def find_path(self, s:cave.Vector2, e:cave.Vector2):
-		self.a_star(self.pathnode_list, s, e)
+	def find_path(self, s, e:cave.Vector2, eP):
+		startnode = None
+		endnode = None
+		path = None
+		available_pathnode_list = []
+		scene = cave.getScene()
+
+		for p in self.pathnode_list:
+			props = p.getProperties()
+			obstacle = props.get("obstacle")
+			if obstacle == False:
+				available_pathnode_list.append(p)
+
+		for p in available_pathnode_list:
+			props = p.getProperties()
+			nX = props.get("x")
+			nY = props.get("y")
+			if nX == s.x:
+				if nY == s.y:
+					startnode = p
+
+			eX = props.get("x")
+			eY = props.get("y")
+			if eX == e.x:
+				if eY == e.y:
+					endnode = p
+
+		if startnode is not None:
+			if endnode is not None:
+				path = self.a_star(available_pathnode_list, startnode, endnode, eP)
+
+		if path is not None:
+			y = 0
+			x = 0
+			
+			completed_path = []
+			
+			for p in self.pathnode_list:
+				y = p.getProperties()["y"]
+				x = p.getProperties()["x"]
+				
+				for pa in path:
+					paY = pa[1]
+					paX = pa[0]
+					
+					if paX == x:
+						if paY == y:
+							completed_path.append(p)
+				
+			return completed_path
+
+		return None
 
 
-	def a_star(self, nodelist, start, end):
-		print ("finding path: " + str(start) + " -> " + str(end))
-		pass
+	def heuristic(self, node_a, node_b):
+		x1 = node_a.getProperties()["x"]
+		y1 = node_a.getProperties()["y"]
+		x2 = node_b.getProperties()["x"]
+		y2 = node_b.getProperties()["y"]
+
+		return abs(x1 - x2) + abs(y1 - y2)
+
+	def a_star(self, nodelist, start, end, endNode):
+		props = start.getProperties()
+		nX = props.get("x")
+		nY = props.get("y")
+
+		props = end.getProperties()
+		eX = props.get("x")
+		eY = props.get("y")
+		start_str = (str(nX) + " " + str(nY))
+		end_str = (str(eX) + " " + str(eY))
+		#print("finding path: " + start_str + " -> " + end_str)
+
+		openlist = []
+		closedlist = []
+
+		openlist.append(start)
+		for node in nodelist:
+			node.getProperties()["g"] = float('inf') 
+			node.getProperties()["h"] = 0
+			node.getProperties()["f"] = float('inf')
+			node.getProperties()["parent"] = None  
+
+		start.getProperties()["g"] = 0
+		start.getProperties()["f"] = self.heuristic(start, end)
+
+		while openlist:
+			current_node = min(openlist, key=lambda node: node.getProperties()["f"])
+
+			if current_node == end:
+				path = []
+				while current_node:
+					path.append((current_node.getProperties()["x"], current_node.getProperties()["y"]))
+					current_node = current_node.getProperties().get("parent")
+				#print(f"Constructed Path: {path}")
+				return path[::-1]  # Return reversed path
+
+			openlist.remove(current_node)
+			closedlist.append(current_node)
+
+			neighbors = self.get_neighbors(current_node, nodelist)
+
+			for neighbor in neighbors:
+				if neighbor in closedlist:
+					continue  # Ignore already evaluated neighbors
+
+				# Calculate g, h, and f for the neighbor
+				neighbor_g = current_node.getProperties()["g"] + 1
+				neighbor_h = self.heuristic(neighbor, end)
+				neighbor_f = neighbor_g + neighbor_h
+
+				if neighbor in openlist:
+					if neighbor_g < neighbor.getProperties()["g"]:
+						neighbor.getProperties()["g"] = neighbor_g
+						neighbor.getProperties()["f"] = neighbor_f
+						neighbor.getProperties()["parent"] = current_node
+				else:
+					neighbor.getProperties()["g"] = neighbor_g
+					neighbor.getProperties()["h"] = neighbor_h
+					neighbor.getProperties()["f"] = neighbor_f
+					neighbor.getProperties()["parent"] = current_node 
+					openlist.append(neighbor)
+
+		return []
+
+	def get_neighbors(self, current_node, nodelist):
+		neighbors = []
+		x, y = current_node.getProperties()["x"], current_node.getProperties()["y"]
+		# Check for 4 possible directions (up, down, left, right)
+		for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+			neighbor_pos = (x + dx, y + dy)
+			# Check if neighbor_pos is valid (within bounds and not an obstacle)
+			neighbor_node = next((node for node in nodelist if (node.getProperties()["x"], node.getProperties()["y"]) == neighbor_pos), None)
+			if neighbor_node:
+				neighbors.append(neighbor_node)
+
+		#print(f"Current Node: {x}, {y}, Neighbors Found: {len(neighbors)}")
+		return neighbors
+
 
 	def generateGrid(self):
 	
@@ -87,12 +222,17 @@ class Pathfinder(cave.Component):
 		spacing_factor = 0.25
 		pos = cave.Vector3(x * spacing_factor, 0.05, y * spacing_factor)  
 
-		pn = PathNode()
-		
-		if pn is not None:
-			self.register_pathnode(pn)
-			pn.setEntity(newNode)
+		props = newNode.getProperties()
+		props["x"] = x
+		props["y"] = y
+		rand = random.random()
 
+		if rand > 0.9:
+			props["obstacle"] = True
+			newNode.setActive(False, scene)
+
+		self.register_pathnode(newNode)
+		
 		if tf is not None:
 			tf.position = pos
 	
@@ -107,7 +247,7 @@ class Pathfinder(cave.Component):
 			
 		if events.active(cave.event.MOUSE_LEFT):
 			if self.ref_unitmanager is not None:
-				self.ref_unitmanager.give_move_order(self.target)
+				self.ref_unitmanager.give_move_order(self.target, self.target)
 		
 	def end(self, scene: cave.Scene):
 		pass

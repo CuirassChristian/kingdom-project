@@ -15,7 +15,10 @@ class Unit(cave.Component):
 	cur_pos : cave.Vector3 = None
 	hasMoveOrder : bool = False
 	unit_collision = None
-
+	next_node = None
+	node_path_count : int = 0
+	pathlist = []
+	
 	def __init__(self):
 		cave.Component.__init__(self)
 		pass
@@ -24,6 +27,11 @@ class Unit(cave.Component):
 		self.targetPos : cave.Vector3 = None
 		self.hasMoveOrder = False
 		self.distance_speed : Float = 0
+		self.next_node = None
+		self.node_path_count : int = 0
+		
+		self.pathlist = []
+		
 		self.unit_collision = self.entity.get("RigidBodyComponent")
 		if self.unit_collision is not None:
 			print("we have collision")
@@ -35,7 +43,9 @@ class Unit(cave.Component):
 		self.cur_x = 0
 		self.cur_y = 0
 
-		self.moveSpeed = 1
+		self.pathlist = None
+
+		self.moveSpeed = 5
 		self.unitManager = scene.get("UnitManager")
 		self.tf = self.entity.getTransform()
 		self.cur_pos : cave.Vector3 = self.tf.position
@@ -43,21 +53,63 @@ class Unit(cave.Component):
 			self.ref_unitManager = self.unitManager.getPy("UnitManager")
 			self.ref_unitManager.add_unit(self)
 			
-	def moveTo (self, pos: cave.Vector3):
-		print ("received move order to " + str(pos))
-		self.cur_pos : cave.Vector3 = self.tf.position
-		self.targetPos = pos
-		base_time_per_unit_distance = 0.1
+	def moveTo (self, pathlist):
+		self.node_path_count = 0
+		
+		self.pathlist = pathlist
+		
+		if len(self.pathlist) == 0:
+			print("no path to follow")
+			return
+			
+		firstnode = pathlist[0]
+		self.next_node = pathlist[1]
+		
+		if firstnode is not None:
+			print ("we have the first node")
+			
+			pn = firstnode.getPy("PathNode")
+			
+			if pn is not None:
+				print ("we have the py")
+				if self.next_node is not None:
+					self.targetPos = self.next_node.getTransform().position
+					self.cur_pos = firstnode.getTransform().position
+					
+					self.move()
+		
+		pass
+		
+	def goto_nextnode(self, currentnode, nextnode):
+
+		pass
+		
+	def node_reached(self):
+		self.node_path_count += 1
+		print("reached goal - next node is " + str(self.node_path_count))
+		
+		path_len = len(self.pathlist)
+		if self.node_path_count >= path_len:
+			print("path is completed")
+			return
+		else:
+			print("moving to next node")
+			self.next_node = self.pathlist[self.node_path_count]
+			self.targetPos = self.next_node.getTransform().position
+			self.cur_pos = self.pathlist[self.node_path_count -1].getTransform().position
+			
+			self.move()
+		
+	def move(self):
+		base_time_per_unit_distance = 0.05
 		distance_to_target = (self.targetPos - self.cur_pos).length()
 		desired_time_to_reach = distance_to_target * base_time_per_unit_distance
-
+	
 		self.distance_speed = distance_to_target / desired_time_to_reach
 		self.distance_speed = min(self.distance_speed, self.moveSpeed)
 		self.cur_tf.setPosition(self.cur_pos)
 		self.target_tf.setPosition(self.targetPos)
 		self.hasMoveOrder = True
-
-		pass
 
 	def check_collisions(self):
 		collisions = self.unit_collision.getCollisionsWith("Unit")
@@ -86,9 +138,10 @@ class Unit(cave.Component):
 			distance_to_target = (self.targetPos - self.cur_pos).length()
 
 			self.tf.position = self.cur_tf.position
-			if distance_to_target < 0.13:
+			if distance_to_target < 0.1:
 				self.hasMoveOrder = False
 				print("move order finished")
+				self.node_reached()
 			#print (distance)
 
 	def update(self):

@@ -13,10 +13,7 @@ class PathNode(cave.Component):
 		self.position = None
 		self.x : int = 0
 		self.y : int = 0
-		self.g = 0
-		self.h = 0
-		self.f = 0
-
+		self.nodeObject = None
 		pass
 
 	def update_xy(self, x, y):

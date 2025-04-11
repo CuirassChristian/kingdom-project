@@ -25,16 +25,26 @@ class UnitManager(cave.Component):
 		print ("Removing Unit")
 		self.unit_list.remove(u)
 
-	def give_move_order(self, end:cave.Vector2):
+	def give_move_order(self, end:cave.Vector2, eP):
 		print ("giving move order")
 		for x in self.selected_unit_list:
 	
 			if x is not None:
+				props = x.entity.getProperties()
+				newx = props.get("x")
+				newy = props.get("y")
 				#x.moveTo(pos)
 				# in the first version
 				# we actually moved to a physical vec3
 				# we will use a generic a* grid instead
-				self.ref_pathfindingscript.find_path(cave.Vector2(x.cur_x, x.cur_y), end)
+				path = self.ref_pathfindingscript.find_path(cave.Vector2(newx,newy), end, eP)
+				if path is not None:
+					print ("unit manager has a path")
+					x.moveTo(path)
+					
+					for n in path:
+						#print (n)
+						pass
 
 	def start(self, scene: cave.Scene):
 		self.ref_pathfindingscript = scene.get("Pathfinding").getPy("Pathfinder")

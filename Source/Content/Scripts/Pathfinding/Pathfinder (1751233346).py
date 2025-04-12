@@ -63,59 +63,43 @@ class Pathfinder(cave.Component):
 		self.number_of_pathnodes = len(self.pathnode_list)
 		#print(len(self.pathnode_list))
 
-	def find_path(self, s, e:cave.Vector2, eP):
+	def find_path(self, s, e: cave.Vector2, eP):
 		startnode = None
 		endnode = None
 		path = None
 		available_pathnode_list = []
 		scene = cave.getScene()
 
+		# Create a dictionary for fast lookup of path nodes by their coordinates
+		pathnode_dict = {}
+
 		for p in self.pathnode_list:
 			props = p.getProperties()
 			obstacle = props.get("obstacle")
-			if obstacle == False:
+			occupied = props.get("occupied", False)  # Assuming you have a way to check occupancy
+			if not obstacle and not occupied:  # Only add non-obstacle and non-occupied nodes
 				available_pathnode_list.append(p)
+				nX = props.get("x")
+				nY = props.get("y")
+				pathnode_dict[(nX, nY)] = p  # Map (x, y) to path node
 
-		for p in available_pathnode_list:
-			props = p.getProperties()
-			nX = props.get("x")
-			nY = props.get("y")
-			if nX == s.x:
-				if nY == s.y:
-					startnode = p
+		# Use the dictionary to find start and end nodes
+		startnode = pathnode_dict.get((s.x, s.y))
+		endnode = pathnode_dict.get((e.x, e.y))
 
-			eX = props.get("x")
-			eY = props.get("y")
-			if eX == e.x:
-				if eY == e.y:
-					endnode = p
-
-		if startnode is not None:
-			if endnode is not None:
-				path = self.a_star(available_pathnode_list, startnode, endnode, eP)
+		if startnode is not None and endnode is not None:
+			path = self.a_star(available_pathnode_list, startnode, endnode, eP)
 
 		if path is not None:
-			y = 0
-			x = 0
-			
 			completed_path = []
-
 			for pa in path:
-				for p in available_pathnode_list:
-					y = p.getProperties()["y"]
-					x = p.getProperties()["x"]
+				completed_node = pathnode_dict.get((pa[0], pa[1]))
+				if completed_node:
+					completed_path.append(completed_node)
 
-					paY = pa[1]
-					paX = pa[0]
-						
-					if paX == x:
-						if paY == y:
-							completed_path.append(p)
-				
 			return completed_path
 
 		return None
-
 
 	def heuristic(self, node_a, node_b):
 		x1 = node_a.getProperties()["x"]
@@ -192,10 +176,10 @@ class Pathfinder(cave.Component):
 	def get_neighbors(self, current_node, nodelist):
 		neighbors = []
 		x, y = current_node.getProperties()["x"], current_node.getProperties()["y"]
-		# Check for 4 possible directions (up, down, left, right)
-		for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+		for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1), 
+					(-1, -1), (-1, 1), (1, -1), (1, 1)]:
 			neighbor_pos = (x + dx, y + dy)
-			# Check if neighbor_pos is valid (within bounds and not an obstacle)
+
 			neighbor_node = next((node for node in nodelist if (node.getProperties()["x"], node.getProperties()["y"]) == neighbor_pos), None)
 			if neighbor_node:
 				neighbors.append(neighbor_node)

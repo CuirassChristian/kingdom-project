@@ -54,9 +54,8 @@ class Unit(cave.Component):
 			self.ref_unitManager = self.unitManager.getPy("UnitManager")
 			self.ref_unitManager.add_unit(self)
 			
-	def moveTo (self, pathlist):
+	def moveTo(self, pathlist):
 		self.node_path_count = 0
-		
 		self.pathlist = pathlist
 		
 		if len(self.pathlist) == 0:
@@ -65,14 +64,17 @@ class Unit(cave.Component):
 			
 		firstnode = pathlist[0]
 		self.next_node = pathlist[1]
-		
+
 		if firstnode is not None:
-			print ("we have the first node")
+			print("we have the first node")
+			
+			# Mark the first node as occupied
+			firstnode.getProperties()["occupied"] = True
 			
 			pn = firstnode.getPy("PathNode")
 			
 			if pn is not None:
-				print ("we have the py")
+				print("we have the py")
 				if self.next_node is not None:
 					self.targetPos = self.next_node.getTransform().position
 					self.cur_pos = firstnode.getTransform().position
@@ -80,11 +82,13 @@ class Unit(cave.Component):
 					self.move()
 		
 		pass
-		
+
 	def node_reached(self):
-		
 		self.idle_pathnode = self.pathlist[self.node_path_count]
-		
+
+		# Mark the node as unoccupied when reached
+		self.idle_pathnode.getProperties()["occupied"] = False
+
 		self.entity.getProperties()["x"] = self.idle_pathnode.getProperties()["x"]
 		self.entity.getProperties()["y"] = self.idle_pathnode.getProperties()["y"]
 		
@@ -102,9 +106,10 @@ class Unit(cave.Component):
 			self.node_path_count += 1
 			print("moving to next node")
 			self.next_node = self.pathlist[self.node_path_count]
+
 			self.targetPos = self.next_node.getTransform().position
-			self.cur_pos = self.pathlist[self.node_path_count -1].getTransform().position
-		
+			self.cur_pos = self.pathlist[self.node_path_count - 1].getTransform().position
+			
 			self.move()
 		
 	def move(self):

@@ -91,7 +91,7 @@ class Unit(cave.Component):
 
 		self.entity.getProperties()["x"] = self.idle_pathnode.getProperties()["x"]
 		self.entity.getProperties()["y"] = self.idle_pathnode.getProperties()["y"]
-		
+		self.hasMoveOrder == False
 		print("reached goal - next node is " + str(self.node_path_count))
 
 		path_len = len(self.pathlist)
@@ -99,18 +99,22 @@ class Unit(cave.Component):
 			print("path is completed")
 			return
 		else:
-			if self.node_path_count + 1 > len(self.pathlist):
+	
+			if self.node_path_count + 1 > len(self.pathlist) - 1:
 				print("no available next nodes")
 				return
 				
 			self.node_path_count += 1
 			print("moving to next node")
-			self.next_node = self.pathlist[self.node_path_count]
+			if self.pathlist[self.node_path_count]:
+				self.next_node = self.pathlist[self.node_path_count]
 
-			self.targetPos = self.next_node.getTransform().position
-			self.cur_pos = self.pathlist[self.node_path_count - 1].getTransform().position
+				self.targetPos = self.next_node.getTransform().position
+				self.cur_pos = self.pathlist[self.node_path_count - 1].getTransform().position
 			
-			self.move()
+				self.move()
+			else:
+				print ("no node")
 		
 	def move(self):
 		base_time_per_unit_distance = 0.05

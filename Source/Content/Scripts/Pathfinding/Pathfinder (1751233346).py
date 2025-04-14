@@ -70,20 +70,21 @@ class Pathfinder(cave.Component):
 		available_pathnode_list = []
 		scene = cave.getScene()
 
-		# Create a dictionary for fast lookup of path nodes by their coordinates
+		# use dictionary for faster lookup
 		pathnode_dict = {}
 
 		for p in self.pathnode_list:
 			props = p.getProperties()
+			# checking occupancy
 			obstacle = props.get("obstacle")
-			occupied = props.get("occupied", False)  # Assuming you have a way to check occupancy
-			if not obstacle and not occupied:  # Only add non-obstacle and non-occupied nodes
+			occupied = props.get("occupied", False)  
+			
+			if not obstacle and not occupied: 
 				available_pathnode_list.append(p)
 				nX = props.get("x")
 				nY = props.get("y")
-				pathnode_dict[(nX, nY)] = p  # Map (x, y) to path node
+				pathnode_dict[(nX, nY)] = p 
 
-		# Use the dictionary to find start and end nodes
 		startnode = pathnode_dict.get((s.x, s.y))
 		endnode = pathnode_dict.get((e.x, e.y))
 

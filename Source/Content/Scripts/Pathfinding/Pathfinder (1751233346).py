@@ -75,6 +75,10 @@ class Pathfinder(cave.Component):
 
 		for p in self.pathnode_list:
 			props = p.getProperties()
+			pn = p.getPy("PathNode")
+			if pn is not None:
+				pn.unhighlight()
+
 			# checking occupancy
 			obstacle = props.get("obstacle")
 			occupied = props.get("occupied", False)  
@@ -97,7 +101,7 @@ class Pathfinder(cave.Component):
 				completed_node = pathnode_dict.get((pa[0], pa[1]))
 				if completed_node:
 					completed_path.append(completed_node)
-
+				
 			return completed_path
 
 		return None

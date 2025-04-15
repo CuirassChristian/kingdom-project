@@ -65,6 +65,9 @@ class Unit(cave.Component):
 		firstnode = pathlist[0]
 		self.next_node = pathlist[1]
 
+		for p in pathlist:
+			p.getPy("PathNode").highlight_path()
+
 		if firstnode is not None:
 			print("we have the first node")
 			
@@ -88,7 +91,7 @@ class Unit(cave.Component):
 
 		# Mark the node as unoccupied when reached
 		self.idle_pathnode.getProperties()["occupied"] = False
-
+	
 		self.entity.getProperties()["x"] = self.idle_pathnode.getProperties()["x"]
 		self.entity.getProperties()["y"] = self.idle_pathnode.getProperties()["y"]
 		self.hasMoveOrder == False
@@ -105,6 +108,8 @@ class Unit(cave.Component):
 				return
 				
 			self.node_path_count += 1
+			self.next_node.getPy("PathNode").highlight()
+
 			print("moving to next node")
 			if self.pathlist[self.node_path_count]:
 				self.next_node = self.pathlist[self.node_path_count]

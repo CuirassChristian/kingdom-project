@@ -15,7 +15,7 @@ class PathNode(cave.Component):
 		self.position = None
 		self.x : int = 0
 		self.y : int = 0
-
+		self.entity.getProperties()["Selectable"] == False
 		self.mesh = self.entity.get("Mesh")
 
 		self.unhighlight()
@@ -37,6 +37,18 @@ class PathNode(cave.Component):
 		if self.mesh is not None:
 			material = self.mesh.material
 			self.mesh.tint = cave.Vector4(15, 15, 0, 0.5)
+
+	def make_selectable(self):
+		if self.mesh is not None:
+			material = self.mesh.material
+			self.mesh.tint = cave.Vector4(0, 0, 15, 0.25)
+
+		self.entity.getProperties()["Selectable"] = True
+
+	def make_unselectable(self):
+		self.unhighlight()
+
+		self.entity.getProperties()["Selectable"] = False
 
 	def update_xy(self, x, y):
 		self.x = x 

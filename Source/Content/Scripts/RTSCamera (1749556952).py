@@ -22,6 +22,8 @@ class RTSCamera(cave.Component):
 		self.ref_pathfindingscript = scene.get("Pathfinding").getPy("Pathfinder")
 		self.mouse_world_pos_obj = self.entity.getScene().addFromTemplate("WorldMousePosObj")
 
+		self.highlighted_unit = None
+
 		if self.ref_pathfindingscript is not None:
 			self.ref_pathfindingscript.register_rts_cam(self)
 
@@ -29,11 +31,27 @@ class RTSCamera(cave.Component):
 			self.clickdrag_rect.scale = cave.UIVector(0,0)
 			self.clickdrag_rect.position = cave.UIVector(0,0)
 
+		self.um_obj = scene.get("UnitManager")
+		if self.um_obj is not None:
+			self.ref_unitmanager = self.um_obj.getPy("UnitManager")
+			if self.ref_unitmanager is not None:
+				print ("we have unit manager in pathfinding")
+
 	def update(self):
 		self.camera_move()
 		self.camera_zoom()
+
+		self.check_clicks()
 		self.camera_raycast()
 		self.draw_clickdrag()
+
+	def check_clicks(self):
+		events = cave.getEvents()
+
+		if events.active(cave.event.MOUSE_LEFT):
+			if self.highlighted_unit is not None:
+				self.ref_unitmanager.select_unit(self.highlighted_unit)
+
 
 	def draw_clickdrag (self):
 		window = cave.getWindow()
@@ -79,6 +97,8 @@ class RTSCamera(cave.Component):
 		scene.addDebugLine(origin, ray_target, cave.Vector3(0,0,0))
 	
 		if result.hit:
+
+			# checking for tiles
 			pn : PathNode = None
 			pn = result.entity.getPy("PathNode")
 
@@ -97,11 +117,23 @@ class RTSCamera(cave.Component):
 				newy = props.get("y")
 
 				#print(str(newx) + " " + str(newy))
-
 				self.ref_pathfindingscript.set_target_pathnode(cave.Vector2(newx, newy))
 			
 			self.coordText.setText("pathnode: " + str(round(newx, 2))
 			+ ", " + str(round(newy, 2)))
+
+			#checking for units
+			un : Unit = None
+			un = result.entity.getPy("Unit")
+
+			if un is not None:
+				print("we found a unit")
+				self.highlighted_unit = un
+				self.ref_unitmanager.highlight_unit(un)
+			else:
+				self.ref_unitmanager.unhighlight()
+	
+				
 	
 		pass
 		

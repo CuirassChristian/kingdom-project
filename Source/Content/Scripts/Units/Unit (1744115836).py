@@ -19,6 +19,8 @@ class Unit(cave.Component):
 	node_path_count : int = 0
 	pathlist = []
 	idle_pathnode = None
+
+	unit_walk_range = 5
 	
 	def __init__(self):
 		cave.Component.__init__(self)
@@ -30,7 +32,14 @@ class Unit(cave.Component):
 		self.distance_speed : Float = 0
 		self.next_node = None
 		self.node_path_count : int = 0
-		
+
+		self.hlt_graphic = self.entity.getChild("highlight", True)
+		self.sel_graphic = self.entity.getChild("select", True)
+		self.toggle_highlight(False)
+		self.toggle_select(False)
+
+		self.unit_walk_range = 5
+
 		self.pathlist = []
 		self.idle_pathnode = None
 		self.unit_collision = self.entity.get("RigidBodyComponent")
@@ -50,20 +59,39 @@ class Unit(cave.Component):
 		self.unitManager = scene.get("UnitManager")
 		self.tf = self.entity.getTransform()
 		self.cur_pos : cave.Vector3 = self.tf.position
+
 		if self.unitManager is not None:
 			self.ref_unitManager = self.unitManager.getPy("UnitManager")
 			self.ref_unitManager.add_unit(self)
+
+		#self.ref_unitManager.get_nearby_tiles(cave.Vector2(x,y), self.unit_walk_range)
 			
+
+	def toggle_highlight (self, active : bool):
+		self.hlt_graphic.setActive(active, cave.getScene())
+		pass
+
+	def toggle_select (self, active : bool):
+		self.sel_graphic.setActive(active, cave.getScene())
+		pass
+
 	def moveTo(self, pathlist):
+
 		self.node_path_count = 0
 		self.pathlist = pathlist
 		
 		if len(self.pathlist) == 0:
 			print("no path to follow")
 			return
+
+		if len(self.pathlist) == 1:
+			print("path too short")
+			return
 			
 		firstnode = pathlist[0]
 		self.next_node = pathlist[1]
+
+		self.ref_unitManager.on_move_finished(self)
 
 		for p in pathlist:
 			p.getPy("PathNode").highlight_path()
@@ -88,23 +116,30 @@ class Unit(cave.Component):
 
 	def node_reached(self):
 		self.idle_pathnode = self.pathlist[self.node_path_count]
-
+		self.idle_pathnode.getPy("PathNode").highlight()
 		# Mark the node as unoccupied when reached
 		self.idle_pathnode.getProperties()["occupied"] = False
+	
 	
 		self.entity.getProperties()["x"] = self.idle_pathnode.getProperties()["x"]
 		self.entity.getProperties()["y"] = self.idle_pathnode.getProperties()["y"]
 		self.hasMoveOrder == False
+
+		x = self.entity.getProperties()["x"]
+		y = self.entity.getProperties()["y"]
+
 		print("reached goal - next node is " + str(self.node_path_count))
 
 		path_len = len(self.pathlist)
-		if self.node_path_count >= path_len:
+		if self.node_path_count >= path_len - 1:
 			print("path is completed")
+			self.ref_unitManager.on_move_finished(self)
 			return
 		else:
 	
 			if self.node_path_count + 1 > len(self.pathlist) - 1:
 				print("no available next nodes")
+				self.ref_unitManager.on_move_finished(self)
 				return
 				
 			self.node_path_count += 1
@@ -118,6 +153,7 @@ class Unit(cave.Component):
 				self.cur_pos = self.pathlist[self.node_path_count - 1].getTransform().position
 			
 				self.move()
+				self.next_node.getPy("PathNode").highlight()
 			else:
 				print ("no node")
 		

@@ -20,6 +20,9 @@ class Pathfinder(cave.Component):
 		
 	def start(self, scene: cave.Scene):
 		self.unit : Unit = None
+
+		self.targetunit = None
+
 		self.targetPos : cave.Vector3 = None
 		self.unitObj = self.entity.getChild("Unit")
 		self.transf = self.entity.getTransform()
@@ -56,21 +59,24 @@ class Pathfinder(cave.Component):
 			if self.ref_unitmanager is not None:
 				print ("we have unit manager in pathfinding")
 
-		self.isInit = True
+		self.isInit = True 
+
+	def reset_all_nodes(self):
+		for p in self.pathnode_list:
+			pn = p.getPy("PathNode")
+
+			if pn is not None:
+				pn.make_unselectable()
 
 	def register_pathnode(self, p):
 		self.pathnode_list.append(p)
 		self.number_of_pathnodes = len(self.pathnode_list)
 		#print(len(self.pathnode_list))
-
-	def find_path(self, s, e: cave.Vector2, eP):
-		startnode = None
-		endnode = None
-		path = None
+	
+	def find_neighbours_in_range(self, s, rng):
+		print("Highlighting Neighbours")
+		neighbours = []
 		available_pathnode_list = []
-		scene = cave.getScene()
-
-		# use dictionary for faster lookup
 		pathnode_dict = {}
 
 		for p in self.pathnode_list:
@@ -90,7 +96,52 @@ class Pathfinder(cave.Component):
 				pathnode_dict[(nX, nY)] = p 
 
 		startnode = pathnode_dict.get((s.x, s.y))
+		if startnode is not None:
+			neighbours = self.get_neighbors(startnode, available_pathnode_list, rng)
+		
+		for n in neighbours:
+			n.getPy("PathNode").make_selectable()
+
+
+	def find_path(self, s, e: cave.Vector2, eP):
+		startnode = None
+		endnode = None
+		path = None
+		available_pathnode_list = []
+		scene = cave.getScene()
+
+		# use dictionary for faster lookup
+		pathnode_dict = {}
+
+		for p in self.pathnode_list:
+			props = p.getProperties()
+			pn = p.getPy("PathNode")
+
+			if pn is not None:
+				pn.unhighlight()
+
+			# checking occupancy
+			obstacle = props.get("obstacle")
+			occupied = props.get("occupied", False)  
+			
+			if not obstacle and not occupied: 
+				available_pathnode_list.append(p)
+				nX = props.get("x")
+				nY = props.get("y")
+				pathnode_dict[(nX, nY)] = p 
+
+		startnode = pathnode_dict.get((s.x, s.y))
 		endnode = pathnode_dict.get((e.x, e.y))
+
+		if endnode.getProperties()["Selectable"] == False:
+			print("Target is outside of range")
+			return None
+
+		for p in self.pathnode_list:
+			pn = p.getPy("PathNode")
+
+			if pn is not None:
+				pn.make_unselectable()
 
 		if startnode is not None and endnode is not None:
 			path = self.a_star(available_pathnode_list, startnode, endnode, eP)
@@ -99,6 +150,7 @@ class Pathfinder(cave.Component):
 			completed_path = []
 			for pa in path:
 				completed_node = pathnode_dict.get((pa[0], pa[1]))
+
 				if completed_node:
 					completed_path.append(completed_node)
 				
@@ -178,18 +230,20 @@ class Pathfinder(cave.Component):
 
 		return []
 
-	def get_neighbors(self, current_node, nodelist):
+	def get_neighbors(self, current_node, nodelist, rng=1):
 		neighbors = []
 		x, y = current_node.getProperties()["x"], current_node.getProperties()["y"]
-		for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1), 
-					(-1, -1), (-1, 1), (1, -1), (1, 1)]:
-			neighbor_pos = (x + dx, y + dy)
+		
+		for dx in range(-rng, rng + 1):
+			for dy in range(-rng, rng + 1):
+				if abs(dx) + abs(dy) <= rng: 
+					neighbor_pos = (x + dx, y + dy)
 
-			neighbor_node = next((node for node in nodelist if (node.getProperties()["x"], node.getProperties()["y"]) == neighbor_pos), None)
-			if neighbor_node:
-				neighbors.append(neighbor_node)
+					neighbor_node = next((node for node in nodelist if (node.getProperties()["x"], node.getProperties()["y"]) == neighbor_pos), None)
+					if neighbor_node:
+						neighbors.append(neighbor_node)
 
-		#print(f"Current Node: {x}, {y}, Neighbors Found: {len(neighbors)}")
+		# print(f"Current Node: {x}, {y}, Neighbors Found: {len(neighbors)}")
 		return neighbors
 
 
@@ -233,10 +287,8 @@ class Pathfinder(cave.Component):
 		scene = cave.getScene()
 		if events.active(cave.event.KEY_F):
 			print(len(self.pathnode_list))
-			
-		if events.active(cave.event.MOUSE_LEFT):
-			if self.ref_unitmanager is not None:
-				self.ref_unitmanager.give_move_order(self.target, self.target)
+
+
 		
 	def end(self, scene: cave.Scene):
 		pass

@@ -16,7 +16,7 @@ class AttributeManager(cave.Component):
 		pass
 
 	def get_attribute_for_role(self, role_data):
-		print ("Created role attributes: " + role_data.roleName)
+		#print ("Created role attributes: " + role_data.roleName)
 		role_attributes = []
 
 		stre = role_data.base_str

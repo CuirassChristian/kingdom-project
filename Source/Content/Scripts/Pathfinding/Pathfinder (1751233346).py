@@ -42,13 +42,13 @@ class Pathfinder(cave.Component):
 		self.target = cave.Vector2(p.x, p.y)
 		
 	def register_rts_cam(self, r):
-		print ("registering rts camera")
+		#print ("registering rts camera")
 		comm_player_obj = r.entity
 		if comm_player_obj is not None:
 			rts_cam = comm_player_obj.getPy("RTSCamera")
 			if rts_cam is not None:
 				rts_cam.ref_pathfindingscript = self
-				print ("we have registered pathfinding to camera")
+				#print ("we have registered pathfinding to camera")
 		
 	
 	def initialize(self):
@@ -57,7 +57,7 @@ class Pathfinder(cave.Component):
 		if self.um_obj is not None:
 			self.ref_unitmanager = self.um_obj.getPy("UnitManager")
 			if self.ref_unitmanager is not None:
-				print ("we have unit manager in pathfinding")
+				#print ("we have unit manager in pathfinding")
 
 		self.isInit = True 
 
@@ -73,6 +73,8 @@ class Pathfinder(cave.Component):
 		self.number_of_pathnodes = len(self.pathnode_list)
 		#print(len(self.pathnode_list))
 	
+
+	# This method detects neighbours and ensures we only run the pathfinding over them
 	def find_neighbours_in_range(self, s, rng):
 		print("Highlighting Neighbours")
 		neighbours = []
@@ -85,7 +87,6 @@ class Pathfinder(cave.Component):
 			if pn is not None:
 				pn.unhighlight()
 
-			# checking occupancy
 			obstacle = props.get("obstacle")
 			occupied = props.get("occupied", False)  
 			
@@ -110,7 +111,6 @@ class Pathfinder(cave.Component):
 		available_pathnode_list = []
 		scene = cave.getScene()
 
-		# use dictionary for faster lookup
 		pathnode_dict = {}
 
 		for p in self.pathnode_list:
@@ -120,7 +120,6 @@ class Pathfinder(cave.Component):
 			if pn is not None:
 				pn.unhighlight()
 
-			# checking occupancy
 			obstacle = props.get("obstacle")
 			occupied = props.get("occupied", False)  
 			
@@ -166,6 +165,7 @@ class Pathfinder(cave.Component):
 
 		return abs(x1 - x2) + abs(y1 - y2)
 
+	# Runs an a* over neighbours 
 	def a_star(self, nodelist, start, end, endNode):
 		props = start.getProperties()
 		nX = props.get("x")
@@ -200,7 +200,7 @@ class Pathfinder(cave.Component):
 					path.append((current_node.getProperties()["x"], current_node.getProperties()["y"]))
 					current_node = current_node.getProperties().get("parent")
 				#print(f"Constructed Path: {path}")
-				return path[::-1]  # Return reversed path
+				return path[::-1] 
 
 			openlist.remove(current_node)
 			closedlist.append(current_node)
@@ -209,9 +209,7 @@ class Pathfinder(cave.Component):
 
 			for neighbor in neighbors:
 				if neighbor in closedlist:
-					continue  # Ignore already evaluated neighbors
-
-				# Calculate g, h, and f for the neighbor
+					continue  
 				neighbor_g = current_node.getProperties()["g"] + 1
 				neighbor_h = self.heuristic(neighbor, end)
 				neighbor_f = neighbor_g + neighbor_h
@@ -247,12 +245,15 @@ class Pathfinder(cave.Component):
 		return neighbors
 
 
+	# Basic x y grid generation
 	def generateGrid(self):
 	
 		for x in range(self.gridSizeX):
 			for y in range(self.gridSizeY):
 				self.createNode(x, y)
 				
+	# This method generates nodes (It will be a PathNode Template Prefab object)
+	# Uses x and y variables
 	def createNode(self, x, y):
 		scene = cave.getScene()
 		newNode = self.entity.getScene().addFromTemplate("PathNode")

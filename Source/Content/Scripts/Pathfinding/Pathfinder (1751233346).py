@@ -97,6 +97,7 @@ class Pathfinder(cave.Component):
 				pathnode_dict[(nX, nY)] = p 
 
 		startnode = pathnode_dict.get((s.x, s.y))
+		
 		if startnode is not None:
 			neighbours = self.get_neighbors(startnode, available_pathnode_list, rng)
 		
@@ -112,7 +113,9 @@ class Pathfinder(cave.Component):
 		scene = cave.getScene()
 
 		pathnode_dict = {}
-
+		
+		relevant_nodes = []
+		
 		for p in self.pathnode_list:
 			props = p.getProperties()
 			pn = p.getPy("PathNode")
@@ -130,6 +133,7 @@ class Pathfinder(cave.Component):
 				pathnode_dict[(nX, nY)] = p 
 
 		startnode = pathnode_dict.get((s.x, s.y))
+		relevant_nodes = self.get_neighbors(startnode, available_pathnode_list, 7)
 		endnode = pathnode_dict.get((e.x, e.y))
 
 		if endnode.getProperties()["Selectable"] == False:
@@ -143,7 +147,7 @@ class Pathfinder(cave.Component):
 				pn.make_unselectable()
 
 		if startnode is not None and endnode is not None:
-			path = self.a_star(available_pathnode_list, startnode, endnode, eP)
+			path = self.a_star(relevant_nodes, startnode, endnode, eP)
 
 		if path is not None:
 			completed_path = []

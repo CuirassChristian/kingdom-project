@@ -57,6 +57,7 @@ class Pathfinder(cave.Component):
 		if self.um_obj is not None:
 			self.ref_unitmanager = self.um_obj.getPy("UnitManager")
 			if self.ref_unitmanager is not None:
+				pass
 				#print ("we have unit manager in pathfinding")
 
 		self.isInit = True 

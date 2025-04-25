@@ -53,7 +53,7 @@ class RoleManager(cave.Component):
 
 		paladin = RoleData("Paladin", 	(19, 2.2), 		#strength
 										(17, 0.1),		#intelligence
-										(8, 0.23 ),	#wisdom
+										(8, 0.23 ),		#wisdom
 										(2, 1.2),		#dexterity
 										(2, 1.4),		#agility
 										(11, 1.6), 		#constitution	

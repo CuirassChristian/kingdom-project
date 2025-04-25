@@ -51,7 +51,8 @@ class AttributeManager(cave.Component):
 				role_attributes.append(Attribute(a.atr_name, comm[0], comm[1]))
 
 		for r in role_attributes:
-			print (r.atr_name + ": " + str(r.base_value) + " Growth: " + str(r.scale_per_level))
+			pass
+			#print (r.atr_name + ": " + str(r.base_value) + " Growth: " + str(r.scale_per_level))
 		return role_attributes
 				
 
